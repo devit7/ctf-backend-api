@@ -12,5 +12,5 @@ Verify Email Address
 If you did not create an account, no further action is required.
 
 Thanks,<br>
-{{ config('app.name') }}
+Admin {{ config('app.name') }}
 @endcomponent

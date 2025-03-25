@@ -49,7 +49,7 @@ class AuthController extends Controller
                 'verification.verify',
                 Carbon::now()->addMinutes(60),
                 ['id' => $user->id, 'hash' => sha1($user->email)]
-            );
+            ); // ex url : http://localhost:8000/verify?email=1234567890&hash=1234567890
 
             // Dispatch email job to queue
             SendVerificationEmail::dispatch($user, $verificationUrl);

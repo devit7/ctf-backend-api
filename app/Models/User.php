@@ -6,14 +6,32 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use App\Models\Submisions;   
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     protected $table = 'users';
     protected $guarded = ['id'];
+
+    public function submissions()
+    {
+        return $this->hasMany(Submisions::class);
+    }
+
+    public function solvedChallenges()
+    {
+        return $this->submissions()->where('status', 'correct')->with('chall')->get();
+    }
+
+    public function totalSolvedChallenges()
+    {
+        return $this->solvedChallenges()->count();
+    }
+
 
     /**
      * The attributes that are mass assignable.
