@@ -6,6 +6,7 @@ use App\Filament\Resources\CategoryResource\Pages;
 use App\Filament\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
 use Filament\Forms;
+use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -13,6 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\TextColumn;
 
 class CategoryResource extends Resource
@@ -28,9 +30,13 @@ class CategoryResource extends Resource
                 //
                 TextInput::make('name')
                     ->required()
-                    ->unique()
                     ->placeholder('Enter category name')
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->unique(ignoreRecord: true),
+                ColorPicker::make('color')
+                    ->required()
+                    ->placeholder('Select category color')
+                    ->default('#000000'),
             ]);
     }
 
@@ -41,6 +47,7 @@ class CategoryResource extends Resource
                 //
                 TextColumn::make('name')
                     ->searchable(),
+                ColorColumn::make('color'),
                 TextColumn::make('created_at')
                     ->searchable(),
                 TextColumn::make('updated_at')

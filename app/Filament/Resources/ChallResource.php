@@ -140,10 +140,6 @@ class ChallResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->searchable(),
             ])
             ->filters([
                 //

@@ -17,6 +17,7 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        // Validate the request
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
@@ -48,8 +49,14 @@ class AuthController extends Controller
             $verificationUrl = URL::temporarySignedRoute(
                 'verification.verify',
                 Carbon::now()->addMinutes(60),
-                ['id' => $user->id, 'hash' => sha1($user->email)]
-            ); // ex url : http://localhost:8000/verify?email=1234567890&hash=1234567890
+                [
+                    'id' => $user->id,
+                    'hash' => sha1($user->email)
+                ],
+                false // Disable absolute URL generation
+            );
+            $referer = rtrim($request->headers->get('referer'), '/');
+            $verificationUrl = $referer . $verificationUrl; //ex : http://localhost:8000/api/verification/verify?id=1&hash=abc123
 
             // Dispatch email job to queue
             SendVerificationEmail::dispatch($user, $verificationUrl);
@@ -58,14 +65,13 @@ class AuthController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'User registered successfully. Verification email will be sent shortly.',
+                'message' => 'User registered successfully. [Check Your Mail] Verification email will be sent shortly.',
                 'data' => [
                     'user' => $user,
                     'token' => $token,
                     'token_type' => 'Bearer'
                 ]
             ], 201);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -98,7 +104,6 @@ class AuthController extends Controller
                 'status' => true,
                 'message' => 'Email verified successfully'
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -145,7 +150,6 @@ class AuthController extends Controller
                 'status' => true,
                 'message' => 'Verification email will be sent shortly'
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -162,7 +166,6 @@ class AuthController extends Controller
                 'email' => 'required|string|email',
                 'password' => 'required|string',
             ]);
-
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
@@ -170,25 +173,20 @@ class AuthController extends Controller
                     'errors' => $validator->errors()
                 ], 422);
             }
-
             if (!Auth::attempt($request->only('email', 'password'))) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Invalid login credentials'
                 ], 401);
             }
-
             $user = User::where('email', $request->email)->firstOrFail();
-
             if (!$user->email_verified_at) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Please verify your email first'
                 ], 403);
             }
-
             $token = $user->createToken('auth_token')->plainTextToken;
-
             return response()->json([
                 'status' => true,
                 'message' => 'Login successful',
@@ -198,7 +196,6 @@ class AuthController extends Controller
                     'token_type' => 'Bearer'
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -212,12 +209,11 @@ class AuthController extends Controller
     {
         try {
             $request->user()->currentAccessToken()->delete();
-            
+
             return response()->json([
                 'status' => true,
                 'message' => 'Successfully logged out'
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -234,6 +230,14 @@ class AuthController extends Controller
             'data' => [
                 'user' => $request->user()
             ]
+        ], 200);
+    }
+
+    public function getUserAuthenticated(Request $request)
+    {
+        return response()->json([
+            'status' => true,
+            'user' => $request->user()->only(['username', 'institution', 'bio']),
         ], 200);
     }
 }

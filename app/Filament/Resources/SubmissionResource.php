@@ -92,6 +92,7 @@ class SubmissionResource extends Resource
                 TextColumn::make('deleted_at')
                     ->searchable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 //
             ])

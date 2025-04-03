@@ -24,4 +24,9 @@ class Chall extends Model
     {
         return $this->hasMany(Submisions::class);
     }
+
+    public function correctSubmissions()
+    {
+        return $this->hasMany(Submisions::class)->where('status', 'correct');
+    }
 }

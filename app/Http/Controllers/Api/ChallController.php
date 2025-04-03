@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Chall;
 use App\Models\Submisions;
 use App\Models\User;
@@ -33,12 +34,12 @@ class ChallController extends Controller
             ], 400);
         }
 
-        $status = $chall->flag === $request->flag ? 'correct' : 'wrong';
-        
+        $status = $chall->flag === $request->flag ? 'correct' : 'incorrect';
+
         Submisions::create([
             'user_id' => $user->id,
             'chall_id' => $chall->id,
-            'flag' => $request->flag,
+            'flag_submited' => $request->flag,
             'status' => $status
         ]);
 
@@ -51,13 +52,18 @@ class ChallController extends Controller
     public function listChallsByUser()
     {
         $user = Auth::user();
-        $challs = Chall::with(['category'])
-            ->withCount(['submissions as solved' => function($query) use ($user) {
+        $challs = Chall::with(['hints', 'category'])
+            ->where('status', 'open')
+            ->withCount(['submissions as solved' => function ($query) use ($user) {
                 $query->where('user_id', $user->id)
                     ->where('status', 'correct');
             }])
+            //get total solved
+            ->withCount(['submissions as total_solved' => function ($query) {
+                $query->where('status', 'correct');
+            }])
             ->get()
-            ->map(function($chall) {
+            ->map(function ($chall) {
                 $chall->is_solved = $chall->solved > 0;
                 unset($chall->solved);
                 unset($chall->flag);
@@ -69,20 +75,39 @@ class ChallController extends Controller
 
     public function leaderboard()
     {
-        $users = User::select(['id', 'name', 'email'])
-            ->withCount(['submissions as solved_count' => function($query) {
+        $users = User::select(['id', 'username', 'email'])
+            ->withCount(['submissions as solved_count' => function ($query) {
                 $query->where('submisions.status', 'correct');
             }])
-            ->withSum(['submissions as total_points' => function($query) {
+            ->withSum(['submissions as total_points' => function ($query) {
                 $query->where('submisions.status', 'correct')
-                    ->join('chall', 'submisions.chall_id', '=', 'chall.id')
-                    ->select('chall.point');
-            }], 'point')
+                    ->join('chall', 'submisions.chall_id', '=', 'chall.id');
+            }], 'chall.point') // Note: we're directly summing chall.point
+            ->where("users.role", "user")
             ->orderBy('solved_count', 'desc')
             ->orderBy('total_points', 'desc')
             ->take(100)
             ->get();
 
         return response()->json($users);
+    }
+
+    public function getSubmissionsByChall($chall_id)
+    {
+        $submissions = Submisions::where('chall_id', $chall_id)
+            ->with(['user:id,username,email'])
+            ->where('status', 'correct')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($submissions);
+    }
+
+    public function getCategorys()
+    {
+        $categorys = Category::select(['id', 'name'])
+            ->get();
+
+        return response()->json($categorys);
     }
 }

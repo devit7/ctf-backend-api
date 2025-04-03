@@ -10,6 +10,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Resources\Resource;
@@ -36,7 +37,7 @@ class UserResource extends Resource
                     ->placeholder('Enter full name'),
                 TextInput::make('username')
                     ->required()
-                    ->unique()
+                    ->unique( ignoreRecord: true)
                     ->maxLength(255)
                     ->placeholder('Enter username'),
                 TextInput::make('email')
@@ -76,6 +77,11 @@ class UserResource extends Resource
                     ->default('active')
                     ->required()
                     ->placeholder('Select user status'),
+                Textarea::make('bio')
+                    ->maxLength(500)
+                    ->placeholder('Enter bio')
+                    ->rows(3)
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -89,6 +95,9 @@ class UserResource extends Resource
                     ->searchable(),
                 TextColumn::make('email')
                     ->searchable(),
+                TextColumn::make('bio')
+                    ->searchable()
+                    ->limit(10),
                 TextColumn::make('email_verified_at')
                     ->dateTime()
                     ->sortable()
