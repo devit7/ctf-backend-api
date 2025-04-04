@@ -18,6 +18,7 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Repeater;
+use Filament\Support\Colors\Color;
 use Filament\Tables\Columns\TextColumn;
 
 /**
@@ -96,7 +97,7 @@ class ChallResource extends Resource
                     ->reorderable()
                     ->collapsible()
                     ->cloneable()
-                    ->itemLabel(fn (array $state): ?string => $state['hint'] ?? null),
+                    ->itemLabel(fn(array $state): ?string => $state['hint'] ?? null),
             ]);
     }
 
@@ -128,7 +129,7 @@ class ChallResource extends Resource
                     }),
                 TextColumn::make('attachment')
                     ->searchable(),
-                TextColumn::make('category_id')
+                TextColumn::make('category.name')
                     ->searchable(),
                 TextColumn::make('hints_count')
                     ->label('Hints')
@@ -145,7 +146,9 @@ class ChallResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

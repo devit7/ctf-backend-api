@@ -62,10 +62,24 @@ class DiscordResource extends Resource
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('url')
+                    ->limit(10)
                     ->searchable(),
                 TextColumn::make('type')
+                    ->badge(true)
+                    ->color(fn(string $state): string => match ($state) {
+                        'chall' => 'primary',
+                        'hint' => 'warning',
+                        'submision' => 'success',
+                        default => 'gray',
+                    })
                     ->searchable(),
                 TextColumn::make('status')
+                    ->badge(true)
+                    ->color(fn(string $state): string => match ($state) {
+                        'active' => 'success',
+                        'inactive' => 'danger',
+                        default => 'gray',
+                    })
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->searchable(),
